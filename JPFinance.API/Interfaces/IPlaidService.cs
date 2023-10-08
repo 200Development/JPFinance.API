@@ -5,4 +5,5 @@ namespace JPFinance.API.Interfaces;
 public interface IPlaidService
 {
     Task<LinkTokenCreateResponse?> LinkTokenCreateAsync(LinkTokenCreateRequest request);
+    Task<PublicTokenExchangeResponse?> ExchangePublicTokenAsync(PublicTokenExchangeRequest request);
 }

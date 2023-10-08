@@ -40,6 +40,10 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseCors(b =>
+    b.WithOrigins("http://localhost:3000") // Allow only this origin
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 app.MapControllers();
 
 app.Run();

@@ -1,6 +1,5 @@
 ﻿using JPFinance.API.Interfaces;
 using JPFinance.API.Models;
-using JPFinance.API.Services;
 
 namespace JPFinance.API.Repositories
 {
@@ -31,6 +30,22 @@ namespace JPFinance.API.Repositories
             {
                 var response = await _plaid.LinkTokenCreateAsync(request);
                 return response?.LinkToken ?? throw new InvalidOperationException("Response does not contain a link token.");
+            }
+            catch (Exception error)
+            {
+                throw;
+            }
+        }
+
+        public async Task ExchangePublicToken(string linkToken)
+        {
+            var request = new PublicTokenExchangeRequest
+            {
+                LinkToken = linkToken
+            };
+            try
+            {
+                var response = await _plaid.ExchangePublicTokenAsync(request);
             }
             catch (Exception error)
             {

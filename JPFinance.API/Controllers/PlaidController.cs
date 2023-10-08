@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using JPFinance.API.Repositories;
 using JPFinance.API.Interfaces;
 
 namespace JPFinance.API.Controllers
@@ -15,12 +14,20 @@ namespace JPFinance.API.Controllers
             _plaidRepo = plaidRepository;
         }
 
-        [HttpPost]
+        [HttpPost("linktokens")]
         public async Task<IActionResult> CreateLinkTokenAsync()
         {
-             var linkToken = await _plaidRepo.CreateLinkToken();
+            var linkToken = await _plaidRepo.CreateLinkToken();
 
-            return Ok(linkToken);
+            return Ok(new { linkToken });
+        }
+
+        [HttpPost("publictokenexchange")]
+        public async Task<IActionResult> ExchangePublicToken(string linkToken)
+        {
+            await _plaidRepo.ExchangePublicToken(linkToken);
+
+            return Ok();
         }
     }
 }
