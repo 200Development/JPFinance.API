@@ -3,5 +3,5 @@
 public interface IPlaidRepository
 {
     Task<string> CreateLinkToken();
-    Task ExchangePublicToken(string linkToken);
+    Task<string?> ExchangePublicToken(string publicToken);
 }

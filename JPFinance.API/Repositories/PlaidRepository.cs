@@ -37,15 +37,17 @@ namespace JPFinance.API.Repositories
             }
         }
 
-        public async Task ExchangePublicToken(string linkToken)
+        public async Task<string?> ExchangePublicToken(string publicToken)
         {
             var request = new PublicTokenExchangeRequest
             {
-                LinkToken = linkToken
+                PublicToken = publicToken
             };
+            
             try
             {
                 var response = await _plaid.ExchangePublicTokenAsync(request);
+                return response?.AccessToken;
             }
             catch (Exception error)
             {

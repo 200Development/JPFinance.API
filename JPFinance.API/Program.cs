@@ -5,6 +5,7 @@ using JPFinance.API.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IPennywiseRepository, PennywiseRepository>(_ => new PennywiseRepository(builder.Configuration.GetConnectionString("Pennywise")));
 builder.Services.AddScoped<IPlaidRepository, PlaidRepository>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddHttpClient<PlaidService>("SandboxClient", c =>

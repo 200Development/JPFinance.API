@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using JPFinance.API.Interfaces;
+using JPFinance.API.Models;
 
 namespace JPFinance.API.Controllers
 {
@@ -8,10 +9,12 @@ namespace JPFinance.API.Controllers
     public class PlaidController : Controller
     {
         private readonly IPlaidRepository _plaidRepo;
+        private readonly IPennywiseRepository _pennywiseRepo;
 
-        public PlaidController(IPlaidRepository plaidRepository)
+        public PlaidController(IPlaidRepository plaidRepository, IPennywiseRepository pennywiseRepo)
         {
             _plaidRepo = plaidRepository;
+            _pennywiseRepo = pennywiseRepo;
         }
 
         [HttpPost("linktokens")]
@@ -23,9 +26,23 @@ namespace JPFinance.API.Controllers
         }
 
         [HttpPost("publictokenexchange")]
-        public async Task<IActionResult> ExchangePublicToken(string linkToken)
+        public async Task<IActionResult> ExchangePublicToken([FromBody] PublicTokenExchangeRequest publicToken)
         {
-            await _plaidRepo.ExchangePublicToken(linkToken);
+            if (publicToken.PublicToken == null)
+            {
+                return Problem("Unable to exchange public token for access token", null, statusCode: 500);
+            }
+
+            var accessToken = await _plaidRepo.ExchangePublicToken(publicToken.PublicToken);
+            if (accessToken == null)
+            {
+                return Problem("Unable to exchange public token for access token", null, statusCode: 500);
+            }
+
+            //TODO: get userId
+            var userId = 1;
+
+          //  var response = _pennywiseRepo.SaveAccessToken(userId,  .InstitutionId, institution.InstitutionName, accessToken);
 
             return Ok();
         }
