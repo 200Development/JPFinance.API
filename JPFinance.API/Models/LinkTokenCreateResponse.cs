@@ -1,5 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 
+/*******************************************************************
+   
+   Link to Plaid documentation explaining the structure of this model:
+   https://plaid.com/docs/api/tokens/#linktokencreate
+   returned in response from a successful call to Plaid endpoint /item/public_token/exchange.
+   
+*******************************************************************/
+
 namespace JPFinance.API.Models
 {
     public class LinkTokenCreateResponse

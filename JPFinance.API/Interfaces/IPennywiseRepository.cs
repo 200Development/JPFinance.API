@@ -1,7 +1,14 @@
-﻿namespace JPFinance.API.Interfaces
+﻿using JPFinance.API.Models;
+
+namespace JPFinance.API.Interfaces
 {
     public interface IPennywiseRepository
     {
-        public Task<bool> SaveAccessToken(int userId, string institutionId, string institutionName, string accessToken);
+        /// <summary>
+        /// Updates the token and synchronizes the entities based on the provided data transfer object (DTO).
+        /// </summary>
+        /// <param name="dto">An instance of UpdateTokenAndSyncEntities containing details for the update and synchronization.</param>
+        /// <returns>True if the operation is successful; otherwise, false.</returns>
+        public Task<bool> UpdateTokenAndSyncEntities(UpdateTokenAndSyncEntities dto);
     }
 }

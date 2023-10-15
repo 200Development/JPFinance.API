@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/JPFinance.API/AutoMapperProfile.cs
+/JPFinance.API/appsettings.json
+/JPFinance.API/appsettings.json
