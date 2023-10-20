@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using JPFinance.API.Interfaces;
 using JPFinance.API.Models;
-using JPFinance.API.Models.DTOs;
 
 namespace JPFinance.API.Controllers
 {
@@ -9,19 +8,17 @@ namespace JPFinance.API.Controllers
     [Route("[controller]")]
     public class PlaidController : Controller
     {
-        private readonly IPlaidRepository _plaidRepo;
-        private readonly IPennywiseRepository _pennywiseRepo;
+        private readonly IPlaidService _plaidService;
 
-        public PlaidController(IPlaidRepository plaidRepository, IPennywiseRepository pennywiseRepo)
+        public PlaidController(IPlaidService plaidService, IPennywiseRepository pennywiseRepo)
         {
-            _plaidRepo = plaidRepository;
-            _pennywiseRepo = pennywiseRepo;
+            _plaidService = plaidService;
         }
 
         [HttpPost("linktokens")]
         public async Task<IActionResult> CreateLinkTokenAsync()
         {
-            var linkToken = await _plaidRepo.CreateLinkToken();
+            var linkToken = await _plaidService.CreateLinkToken();
 
             return Ok(new { linkToken });
         }
@@ -29,32 +26,11 @@ namespace JPFinance.API.Controllers
         [HttpPost("publictokenexchange")]
         public async Task<IActionResult> ExchangePublicToken([FromBody] PublicTokenMetadata metadata)
         {
-            var request = new PlaidPublicTokenExchangeRequest()
-            {
-                PublicToken = metadata.PublicToken
-            };
+            var accounts = await _plaidService.ExchangePublicToken(metadata);
 
-            var accessToken = await _plaidRepo.ExchangePublicToken(request);
-            if (accessToken == null)
-            {
-                return Problem("Unable to exchange public token for access token", null, statusCode: 500);
-            }
-
-            //TODO: get userId
-            var userId = 1;
-            var accountDtos = metadata.Accounts.Select(account => new AccountDto { AccountId = account.AccountId, Name = account.Name, Type = account.Type, Subtype = account.Subtype }).ToList();
-
-            var dto = new UpdateTokenAndSyncEntities
-            {
-                UserId = userId,
-                AccessToken = accessToken,
-                Institution = metadata.Institution,
-                Accounts = accountDtos.ToArray()
-            };
-            // TODO: handle different responses
-            await _pennywiseRepo.UpdateTokenAndSyncEntities(dto);
-
-            return Ok();
+            return accounts == null 
+                ? Problem("Unable to exchange public token for access token", null, statusCode: 500)
+                : Ok(accounts);
         }
     }
 }

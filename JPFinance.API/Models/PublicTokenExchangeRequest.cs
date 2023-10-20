@@ -10,7 +10,7 @@
 
 namespace JPFinance.API.Models
 {
-    public class PlaidPublicTokenExchangeRequest
+    public class PublicTokenExchangeRequest
     {
         [JsonPropertyName("public_token")]
         public string PublicToken { get; set; } = string.Empty;
