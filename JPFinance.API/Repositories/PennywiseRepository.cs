@@ -1,8 +1,12 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using System.Reflection;
+using JPFinance.API.Interfaces.DTOs;
 using JPFinance.API.Interfaces.Entities;
 using JPFinance.API.Interfaces.Repositories;
+using JPFinance.API.Interfaces.Responses;
 using JPFinance.API.Interfaces.ViewModels;
+using JPFinance.API.Models.Responses;
 using JPFinance.API.Models.ViewModels;
 using Newtonsoft.Json;
 
@@ -24,7 +28,7 @@ public class PennywiseRepository : IPennywiseRepository
     /// <returns>True if the operation is successful; otherwise, false.</returns>
     public async Task<bool> UpdateTokenAndSyncEntities(IUpdateTokenAndSyncEntities dto)
     {
-        DataTable accountsTable = CreateDataTable(dto);
+        DataTable accountsTable = CreateDataTable(dto.Accounts) ?? throw new InvalidOperationException();
 
         try
         {
@@ -50,6 +54,7 @@ public class PennywiseRepository : IPennywiseRepository
         }
         catch
         {
+            //TODO: log error
             return false;
         }
     }
@@ -82,24 +87,115 @@ public class PennywiseRepository : IPennywiseRepository
         }
     }
 
-    private static DataTable CreateDataTable(IUpdateTokenAndSyncEntities dto)
+    public async Task<IGetAccessTokenAndLatestCursorResponse?> GetAccessTokenAndLatestCursor(int itemId)
     {
-        DataTable accountsTable = new();
-        accountsTable.Columns.Add("AccountId", typeof(string));
-        accountsTable.Columns.Add("AvailableBalance", typeof(decimal));
-        accountsTable.Columns.Add("CurrentBalance", typeof(decimal));
-        accountsTable.Columns.Add("Limit", typeof(decimal));
-        accountsTable.Columns.Add("IsoCurrency", typeof(string));
-        accountsTable.Columns.Add("Name", typeof(string));
-        accountsTable.Columns.Add("Type", typeof(string));
-        accountsTable.Columns.Add("Subtype", typeof(string));
-
-        foreach(var account in dto.Accounts)
+        try
         {
-            accountsTable.Rows.Add(account.AccountId, account.AvailableBalance, account.CurrentBalance, account.Limit, account.IsoCurrencyCode, account.Name, account.Type, account.Subtype);
+            return await FetchAccessTokenAndCursorFromDatabase(itemId);
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> SyncTransactionsForItem(ITransactionsDTO dto)
+    {
+        DataTable addedTransactions = CreateDataTable(dto.AddedTransactions);
+        DataTable modifiedTransactions = CreateDataTable(dto.ModifiedTransactions);
+        DataTable removedTransactions = CreateDataTable(dto.RemovedTransactions);
+
+        try
+        {
+            await using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                await using (var command = new SqlCommand("usp_SyncTransactions", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    if (!string.IsNullOrWhiteSpace(dto.AccountId))
+                    {
+                        command.Parameters.AddWithValue("AccountId", dto.AccountId);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(dto.NextCursor))
+                    {
+                        command.Parameters.AddWithValue("@NextCursor", dto.NextCursor);
+                    }
+
+                    if (addedTransactions != null)
+                    {
+                        SqlParameter addedTransactionsParameter =
+                            command.Parameters.AddWithValue("@AddedTransactions", addedTransactions);
+                        addedTransactionsParameter.SqlDbType = SqlDbType.Structured;
+                        addedTransactionsParameter.TypeName = "dbo.TransactionDtoType";
+                    }
+
+                    if (modifiedTransactions != null)
+                    {
+                        SqlParameter modifiedTransactionsParameter =
+                            command.Parameters.AddWithValue("@ModifiedTransactions", modifiedTransactions);
+                        modifiedTransactionsParameter.SqlDbType = SqlDbType.Structured;
+                        modifiedTransactionsParameter.TypeName = "dbo.TransactionDtoType";
+                    }
+
+                    if (removedTransactions != null)
+                    {
+                        SqlParameter removedTransactionsParameter =
+                            command.Parameters.AddWithValue("@RemovedTransactions", removedTransactions);
+                        removedTransactionsParameter.SqlDbType = SqlDbType.Structured;
+                        removedTransactionsParameter.TypeName = "dbo.TransactionDtoType";
+                    }
+                    
+                    await command.ExecuteNonQueryAsync();
+                    return true;
+                }
+            }
+        }
+        catch (SqlException sqlException)
+        {
+
+            return false;
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+    }
+
+    public static DataTable? CreateDataTable<T>(List<T> entities)
+    {
+        DataTable dataTable = new();
+
+        // Check for an empty list
+        if(!entities.Any())
+        {
+            return null;
         }
 
-        return accountsTable;
+        // Use reflection to get the properties of T
+        PropertyInfo[] properties = typeof(T).GetProperties();
+
+        // Create columns for each property
+        foreach(PropertyInfo prop in properties)
+        {
+            dataTable.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+        }
+
+        // Populate rows
+        foreach(var entity in entities)
+        {
+            var values = new object?[properties.Length];
+            for(int i = 0; i < properties.Length; i++)
+            {
+                values[i] = properties[i].GetValue(entity, null);
+            }
+            dataTable.Rows.Add(values);
+        }
+
+        return dataTable;
     }
 
     private async Task<IList<IAccountsViewModel>> FetchAccountsFromDatabase(int userId)
@@ -125,6 +221,51 @@ public class PennywiseRepository : IPennywiseRepository
         }
 
         return viewModel;
+    }
+
+    private async Task<IGetAccessTokenAndLatestCursorResponse?> FetchAccessTokenAndCursorFromDatabase(int itemId)
+    {
+        var response = new GetAccessTokenAndLatestCursorResponse();
+
+        await using(var connection = new SqlConnection(_connectionString))
+        {
+            try
+            {
+                await connection.OpenAsync();
+
+                const string query = "SELECT TOP(1) i.AccessToken, ts.NextCursor " +
+                                     "FROM dbo.Item i " +
+                                     "LEFT JOIN (SELECT TOP(1) ItemId, NextCursor " +
+                                     "  FROM dbo.TransactionsSync " +
+                                     "  WHERE ItemId = 1 " +
+                                     "  ORDER BY LastSyncedOn DESC) " +
+                                     "ts ON i.ItemId = ts.ItemId " +
+                                     "WHERE i.ItemId = 1";
+                await using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ItemId", itemId);
+                    await using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            response.AccessToken = reader["AccessToken"].ToString() ?? string.Empty;
+                            response.NextCursor = reader["NextCursor"].ToString() ?? string.Empty;
+                        }
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        return response;
     }
 
     private static IAccountsViewModel ParseAccount(SqlDataReader reader)

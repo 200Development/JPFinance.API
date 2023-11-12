@@ -1,5 +1,4 @@
 ﻿using JPFinance.API.Interfaces.Services;
-using JPFinance.API.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JPFinance.API.Controllers;
@@ -16,11 +15,15 @@ public class TransactionController : Controller
     }
 
     [HttpPost("sync")]
-    public async Task<IActionResult> TransactionsSync([FromBody] TransactionsSyncRequest request)
+    public async Task<IActionResult> TransactionsSync([FromBody] string itemId)
     {
-        var transactions = await _transactionService.GetTransactionsAsync(request);
+       int.TryParse(itemId, out int intItemId);
+
+        var transactions = await _transactionService.GetTransactionsByItemIdAsync(intItemId);
+
+
             
-        if (transactions == null) 
+         if (transactions == null) 
             return Problem("There was an error getting transactions from Plaid API", null, 500) ;
         if (!transactions.AddedTransactions.Any() && !transactions.ModifiedTransactions.Any())
             return NoContent();

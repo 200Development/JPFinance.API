@@ -1,4 +1,5 @@
-﻿using JPFinance.API.Interfaces.Entities;
+﻿using JPFinance.API.Interfaces.DTOs;
+using JPFinance.API.Interfaces.Entities;
 using JPFinance.API.Models.DTOs;
 
 namespace JPFinance.API.Models.Entities;

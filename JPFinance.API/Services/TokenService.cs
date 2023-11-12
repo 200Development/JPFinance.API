@@ -1,5 +1,4 @@
 ﻿using JPFinance.API.Interfaces.Clients;
-using JPFinance.API.Interfaces.DTOs;
 using JPFinance.API.Interfaces.Entities;
 using JPFinance.API.Interfaces.Repositories;
 using JPFinance.API.Interfaces.Services;

@@ -79,14 +79,4 @@ public class Added : IAdded
 
     [JsonPropertyName("merchant_entity_id")]
     public string? MerchantEntityId { get; set; }
-
-    [JsonPropertyName("modified")] public Modified Modified { get; set; } = new ();
-
-    [JsonPropertyName("removed")] public Removed Removed { get; set; } = new ();
-
-    [JsonPropertyName("next_cursor")] public string NextCursor { get; set; } = string.Empty;
-
-    [JsonPropertyName("has_more")] public bool HasMore { get; set; }
-
-    [JsonPropertyName("request_id")] public string RequestId { get; set; } = string.Empty;
 }

@@ -4,6 +4,7 @@ namespace JPFinance.API.Models.ViewModels;
 
 public class AccountsViewModel : IAccountsViewModel
 {
+    public string AccountId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Subtype { get; set; } = string.Empty;

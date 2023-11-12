@@ -12,9 +12,4 @@ public interface IAdded
     string Name { get; set; }
     string TransactionId { get; set; }
     string? AuthorizedDateTime { get; set; }
-    Modified Modified { get; set; }
-    Removed Removed { get; set; }
-    string NextCursor { get; set; }
-    bool HasMore { get; set; }
-    string RequestId { get; set; }
 }

@@ -1,9 +1,8 @@
-﻿using JPFinance.API.Interfaces.ViewModels;
-using JPFinance.API.Models.Requests;
+﻿using JPFinance.API.Interfaces.DTOs;
 
 namespace JPFinance.API.Interfaces.Services;
 
 public interface ITransactionService
 {
-    Task<ITransactionsViewModel?> GetTransactionsAsync(TransactionsSyncRequest request);
+    Task<ITransactionsDTO?> GetTransactionsByItemIdAsync(int itemId);
 }
