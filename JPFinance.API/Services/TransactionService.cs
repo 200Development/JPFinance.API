@@ -40,29 +40,33 @@ public class TransactionService : ITransactionService
             {
                 ITransactionsSyncResponse? response = await _plaidClient.GetTransactionsAsync(request);
 
-                if(response == null || (!response.Added.Any() && !response.Modified.Any() && !response.Removed.Any()))
+                if(response == null)
                 {
                     return null;
+                }
+
+                if (!response.Added.Any() && !response.Modified.Any() && !response.Removed.Any())
+                {
+                    return dto;
                 }
 
                 foreach(var addedTransaction in response.Added)
                 {
                     var added = new TransactionDTO();
                     added.AccountId = addedTransaction.AccountId;
+                    added.TransactionId = addedTransaction.TransactionId;
+                    added.Name = addedTransaction.Name;
                     added.Amount = addedTransaction.Amount;
                     added.IsoCurrencyCode = addedTransaction.IsoCurrencyCode;
                     added.Date = addedTransaction.Date;
-                    added.Name = addedTransaction.Name;
+                    added.MerchantEntityId = addedTransaction.MerchantEntityId!;
                     added.MerchantName = addedTransaction.MerchantName;
-                    added.OriginalDescription = addedTransaction.OriginalDescription;
-                    added.Payee = addedTransaction.PaymentMeta.Payee;
-                    added.Payer = addedTransaction.PaymentMeta.Payer;
-                    added.PaymentMethod = addedTransaction.PaymentMeta.PaymentMethod;
-                    added.PendingTransactionId = addedTransaction.PendingTransactionId;
-                    added.TransactionId = addedTransaction.TransactionId;
                     added.LogoUrl = addedTransaction.LogoUrl;
                     added.Website = addedTransaction.Website;
-                    added.AuthorizedDateTime = addedTransaction.AuthorizedDateTime;
+                    added.PrimaryCategory = addedTransaction.PersonalFinanceCategory.Primary;
+                    added.DetailedCategory = addedTransaction.PersonalFinanceCategory.Detailed;
+                    added.CategoryConfidenceLevel = addedTransaction.PersonalFinanceCategory.ConfidenceLevel;
+                    added.PaymentChannel = added.PaymentChannel;
                     dto.AddedTransactions.Add(added);
                 }
 
@@ -70,19 +74,17 @@ public class TransactionService : ITransactionService
                 {
                     var modified = new TransactionDTO();
                     modified.AccountId = modifiedTransaction.Id;
+                    modified.TransactionId = modifiedTransaction.TransactionId;
                     modified.Amount = modifiedTransaction.Amount;
                     modified.IsoCurrencyCode = modifiedTransaction.IsoCurrencyCode;
                     modified.Date = modifiedTransaction.Date;
                     modified.MerchantName = modifiedTransaction.MerchantName;
-                    modified.OriginalDescription = modifiedTransaction.OriginalDescription;
-                    modified.Payee = modifiedTransaction.PaymentMeta.Payee;
-                    modified.Payer = modifiedTransaction.PaymentMeta.Payer;
-                    modified.PaymentMethod = modifiedTransaction.PaymentMeta.PaymentMethod;
-                    modified.PendingTransactionId = modifiedTransaction.PendingTransactionId;
-                    modified.TransactionId = modifiedTransaction.TransactionId;
                     modified.LogoUrl = modifiedTransaction.LogoUrl;
                     modified.Website = modifiedTransaction.Website;
-                    modified.AuthorizedDateTime = modifiedTransaction.AuthorizedDateTime;
+                    modified.PrimaryCategory = modifiedTransaction.PersonalFinanceCategory.Primary;
+                    modified.DetailedCategory = modifiedTransaction.PersonalFinanceCategory.Detailed;
+                    modified.CategoryConfidenceLevel = modifiedTransaction.PersonalFinanceCategory.ConfidenceLevel;
+                    modified.PaymentChannel = modifiedTransaction.PaymentChannel;
                     dto.ModifiedTransactions.Add(modified);
                 }
 
@@ -97,9 +99,6 @@ public class TransactionService : ITransactionService
                 request.Cursor = response.NextCursor;
             }
             dto.NextCursor = request.Cursor;
-
-            //TODO: temp for testing sync transactions.  need to modify how account id is handled
-            dto.AccountId = "KbqnZbJAQjid161xr1Aziw7zVBa6evtRV6XWm";
 
             await _pennywiseRepo.SyncTransactionsForItem(dto);
             

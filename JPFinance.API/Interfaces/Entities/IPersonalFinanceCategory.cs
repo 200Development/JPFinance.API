@@ -6,6 +6,5 @@ public interface IPersonalFinanceCategory
 {
     string Primary { get; set; }
     string Detailed { get; set; }
-    string? TransactionCode { get; set; }
-    CounterParties CounterParties { get; set; }
+    string ConfidenceLevel { get; set; }  
 }

@@ -114,12 +114,7 @@ public class PennywiseRepository : IPennywiseRepository
                 await using (var command = new SqlCommand("usp_SyncTransactions", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-
-                    if (!string.IsNullOrWhiteSpace(dto.AccountId))
-                    {
-                        command.Parameters.AddWithValue("AccountId", dto.AccountId);
-                    }
-
+                                       
                     if (!string.IsNullOrWhiteSpace(dto.NextCursor))
                     {
                         command.Parameters.AddWithValue("@NextCursor", dto.NextCursor);
@@ -156,7 +151,6 @@ public class PennywiseRepository : IPennywiseRepository
         }
         catch (SqlException sqlException)
         {
-
             return false;
         }
         catch(Exception e)
