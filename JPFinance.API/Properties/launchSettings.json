@@ -1,4 +1,25 @@
 {
+<<<<<<< HEAD
+  "profiles": {
+    "JPFinance.API": {
+      "commandName": "Project",
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7148;http://localhost:5148"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  },
+=======
+>>>>>>> trunk
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
@@ -7,6 +28,8 @@
       "applicationUrl": "http://localhost:17009",
       "sslPort": 44385
     }
+<<<<<<< HEAD
+=======
   },
   "profiles": {
     "JPFinance.API": {
@@ -27,5 +50,6 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
+>>>>>>> trunk
   }
 }
