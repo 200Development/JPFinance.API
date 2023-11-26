@@ -1,6 +1,6 @@
 ﻿namespace JPFinance.API.Models.ViewModels
 {
-    public class AccountsViewModel
+    public class AccountViewModel
     {
        public string Name { get; set; }
        public string Type { get; set; }

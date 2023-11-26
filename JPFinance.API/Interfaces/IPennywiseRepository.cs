@@ -18,15 +18,17 @@ namespace JPFinance.API.Interfaces
         /// <param name="userId">The unique identifier of the user for whom the accounts are to be fetched.</param>
         /// <returns>
         /// A task that represents the asynchronous operation.
-        /// The task result contains a list of <see cref="AccountsViewModel"/> objects associated with the provided user.
+        /// The task result contains a list of <see cref="AccountViewModel"/> objects associated with the provided user.
         /// Returns null if no accounts are found or an error occurs.
         /// </returns>
         /// <remarks>
         /// This method queries the database view named 'vw_AllUserAccounts' using a parameterized query.
-        /// It constructs a list of <see cref="AccountsViewModel"/> objects by reading from the database,
+        /// It constructs a list of <see cref="AccountViewModel"/> objects by reading from the database,
         /// converting database fields into appropriate model properties.
         /// Any potential DBNull values in the balance or limit fields are handled safely.
         /// </remarks>
-        public Task<List<AccountsViewModel>?> GetAccountsViewModel(int userId);
+        public Task<List<AccountViewModel>?> GetAccountsViewModel(string userId);
+        public Task<List<RecurringTransaction>> GetPrePaydayExpenses(string userId);
+        public Task<List<RecurringTransaction>> GetPostPaydayExpenses(string userId);
     }
 }

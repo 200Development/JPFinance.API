@@ -6,6 +6,6 @@ namespace JPFinance.API.Interfaces
     public interface IPlaidService
     {
         public Task<string> CreateLinkToken();
-        public Task<List<AccountsViewModel>?> ExchangePublicToken(PublicTokenMetadata metadata);
+        public Task<List<AccountViewModel>?> ExchangePublicToken(PublicTokenMetadata metadata);
     }
 }

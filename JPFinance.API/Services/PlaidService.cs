@@ -41,7 +41,7 @@ namespace JPFinance.API.Services
             }
         }
 
-        public async Task<List<AccountsViewModel>?> ExchangePublicToken(PublicTokenMetadata metadata)
+        public async Task<List<AccountViewModel>?> ExchangePublicToken(PublicTokenMetadata metadata)
         {
             var request = new PublicTokenExchangeRequest()
             {
@@ -56,7 +56,7 @@ namespace JPFinance.API.Services
             var accounts = await _plaidClient.GetAccountsAsync(accessToken.AccessToken);
             if (accounts == null) { return null; }
 
-            var userId = 1;
+            var userId = "1";
             var accountDtos = new List<AccountDto>();
 
             foreach (var account in accounts)

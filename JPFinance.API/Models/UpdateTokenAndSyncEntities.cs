@@ -11,7 +11,7 @@ namespace JPFinance.API.Models
 {
     public class UpdateTokenAndSyncEntities
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
       
         public string AccessToken { get; set; } = string.Empty;
     

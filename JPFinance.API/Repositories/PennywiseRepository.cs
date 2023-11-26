@@ -48,11 +48,59 @@ namespace JPFinance.API.Repositories
             }
         }
 
-        public async Task<List<AccountsViewModel>?> GetAccountsViewModel(int userId)
+        public async Task<List<AccountViewModel>?> GetAccountsViewModel(string userId)
         {
             try
             {
                 return await FetchAccountsFromDatabase(userId);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        public async Task<List<RecurringTransaction>> GetPrePaydayExpenses(string userId)
+        {
+            try
+            {
+                var expenses = new List<RecurringTransaction>();
+
+                await using(var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    var query = "SELECT * FROM vw_PrePaydayExpenses WHERE UserId = @UserId AND IsActive = 1 AND StreamType = 'Outflow'";
+                    await using(var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        await using(var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (reader.Read())
+                            {
+                                expenses.Add(ParseExpense(reader));
+                            }
+                        }
+                    }
+                }
+
+                return expenses;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        public async Task<List<RecurringTransaction>> GetPostPaydayExpenses(string userId)
+        {
+            try
+            {
+                var expenses = new List<RecurringTransaction>();
+
+                return expenses;
             }
             catch(Exception e)
             {
@@ -81,9 +129,9 @@ namespace JPFinance.API.Repositories
             return accountsTable;
         }
 
-        private async Task<List<AccountsViewModel>> FetchAccountsFromDatabase(int userId)
+        private async Task<List<AccountViewModel>> FetchAccountsFromDatabase(string userId)
         {
-            var viewModel = new List<AccountsViewModel>();
+            var viewModel = new List<AccountViewModel>();
 
             await using(var connection = new SqlConnection(_connectionString))
             {
@@ -106,9 +154,9 @@ namespace JPFinance.API.Repositories
             return viewModel;
         }
 
-        private AccountsViewModel ParseAccount(SqlDataReader reader)
+        private AccountViewModel ParseAccount(SqlDataReader reader)
         {
-            var account = new AccountsViewModel
+            var account = new AccountViewModel
             {
                 Name = reader["Name"].ToString() ?? string.Empty,
                 Type = reader["Type"].ToString() ?? string.Empty,
@@ -120,6 +168,23 @@ namespace JPFinance.API.Repositories
             };
 
             return account;
+        }
+
+        private RecurringTransaction ParseExpense(SqlDataReader reader)
+        {
+            var expense = new RecurringTransaction
+            {
+                Category = reader["Category"].ToString() ?? string.Empty,
+                Description = reader["Description"].ToString() ?? string.Empty,
+                Frequency = reader["Frequency"].ToString() ?? string.Empty,
+                StartDate = reader["StartDate"].ToString() ?? string.Empty,
+                LastDate = reader["LastDate"].ToString() ?? string.Empty,
+                LastAmount = TryGetDecimal(reader, "LastAmount"),
+                AverageAmount = TryGetDecimal(reader, "AverageAmount"),
+
+            };
+
+            return expense;
         }
 
         private decimal TryGetDecimal(SqlDataReader reader, string columnName)
